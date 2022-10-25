@@ -67,9 +67,7 @@ param_path=/path/to/your/param
 bin_path=/path/to/your/bin
 image_path=/path/to/your/image
 save_path=/path/to/your/save_image
-
 ./sparseinst_ncnn_demo ${param_path} ${bin_path} ${image_path} ${save_path}
-
 # NOTE: image_path can be dir or file.
 ```
 
