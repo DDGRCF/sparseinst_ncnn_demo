@@ -88,6 +88,7 @@ public:
     }
 public:
     int detect(const std::string & image_path, std::vector<Object> & objects) noexcept;
+    int detect(cv::Mat & image, std::vector<Object> & objects) noexcept;
     int inference(const cv::Mat & image, std::vector<Object> & objects) noexcept;
     int visualize(cv::Mat & image, const std::vector<Object> & objects) noexcept;
 
@@ -97,24 +98,25 @@ private:
     RunArgs run_args;
 };
 
-
-int SparseInstDetector::detect(const std::string & image_path, std::vector<Object> & objects) noexcept {
+int SparseInstDetector::detect(cv::Mat & image, std::vector<Object> & objects) noexcept {
     int ret;
-    cv::Mat image = cv::imread(image_path);
-    if (image.empty()) {
-        return -1;
-    }
-
     ret = inference(image, objects);
     if (ret != 0) {
         return -1;
     }
 
     ret = visualize(image, objects);
-    if (ret != 0) {
-        return -1;
+    if (ret != 0) { return -1;
     }
     return 0;
+}
+
+int SparseInstDetector::detect(const std::string & image_path, std::vector<Object> & objects) noexcept {
+    cv::Mat image = cv::imread(image_path);
+    if (image.empty()) {
+        return -1;
+    }
+    return detect(image, objects);
 }
 
 int SparseInstDetector::inference(const cv::Mat & image, std::vector<Object> & objects) noexcept {
