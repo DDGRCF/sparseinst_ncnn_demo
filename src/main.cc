@@ -87,15 +87,25 @@ public:
         run_args = ra;
     }
 public:
-    int detect(const std::string & image_path, std::vector<Object> & objects) noexcept;
-    int detect(cv::Mat & image, std::vector<Object> & objects) noexcept;
+    int detect(const std::string & image_path, std::vector<Object> & objects) noexcept; // NOTE: support file
+    int detect(cv::Mat & image, std::vector<Object> & objects) noexcept; // NOTE: support cv::Mat
+    int detect(const std::string & image_path, const std::string & save_path) noexcept; // NOTE: support both dir and file
+
     int inference(const cv::Mat & image, std::vector<Object> & objects) noexcept;
-    int visualize(cv::Mat & image, const std::vector<Object> & objects) noexcept;
+    int visualize(cv::Mat & image, const std::vector<Object> & objects, const std::string & save_path="") noexcept;
 
 private:
     int state;
     ncnn::Net detector;
     RunArgs run_args;
+
+private:
+    static std::vector<std::string> support_image_suffix;
+
+};
+
+std::vector<std::string> SparseInstDetector::support_image_suffix = {
+    "jpg", "png", "jpeg", "tif", "bmp"
 };
 
 int SparseInstDetector::detect(cv::Mat & image, std::vector<Object> & objects) noexcept {
@@ -108,6 +118,41 @@ int SparseInstDetector::detect(cv::Mat & image, std::vector<Object> & objects) n
     ret = visualize(image, objects);
     if (ret != 0) { return -1;
     }
+    return 0;
+}
+
+int SparseInstDetector::detect(const std::string & image_path, const std::string & save_path) noexcept {
+    int ret;
+    ret = check_dir(image_path, false);
+    if (ret == 0) { // dir
+        std::vector<std::string> image_path_set;
+        ret = check_dir(save_path, true);
+        if (ret != 0) return -1;
+        ret = check_file(image_path, &image_path_set, support_image_suffix);
+        if (ret <= 0) return -1;
+        for (auto & image_path : image_path_set) {
+            std::unordered_map<std::string, std::string> path_parse_result; 
+            parse_path(image_path, path_parse_result);
+            std::string image_save_path = save_path + "/" + path_parse_result["basename"];
+            cv::Mat image = cv::imread(image_path);
+            std::vector<Object> objects;
+            ret = inference(image, objects);
+            if (ret != 0) return -1;
+            ret = visualize(image, objects, image_save_path);
+            if (ret != 0) return -1;
+        }
+    } else { // file
+        cv::Mat image = cv::imread(image_path);
+        if (image.empty()) {
+            return -1;
+        }
+        std::vector<Object> objects;
+        ret = inference(image, objects);
+        if (ret != 0) return -1;
+        ret = visualize(image, objects, save_path);
+        if (ret != 0) return -1;
+    }
+
     return 0;
 }
 
@@ -174,7 +219,9 @@ int SparseInstDetector::inference(const cv::Mat & image, std::vector<Object> & o
     return 0;
 }
 
-int SparseInstDetector::visualize(cv::Mat & image, const std::vector<Object> & objects) noexcept {
+int SparseInstDetector::visualize(cv::Mat & image, 
+                                  const std::vector<Object> & objects, 
+                                  const std::string & save_path) noexcept {
     cv::Scalar txt_color = cv::Scalar(38, 38, 38);
     for (auto i = 0; i < (int)objects.size(); i++) {
         const Object & object = objects[i];
@@ -209,20 +256,24 @@ int SparseInstDetector::visualize(cv::Mat & image, const std::vector<Object> & o
         color_mask.copyTo(mask, pad_mask(cv::Rect(0, 0, image.cols, image.rows)));
         cv::addWeighted(image, 1.0, mask, 0.5, 0., image);
     }
-    cv::imwrite("results.jpg", image);
+    if (save_path.length()) {
+        cv::imwrite(save_path, image);
+    } else {
+        cv::imshow("sparseinst_results", image);
+    }
     return 0;
 }
 
 int main(int argc, char ** argv) {
-    if (argc != 4)
-    {
-        fprintf(stderr, "Usage: %s [param_path] [bin_path] [image_path]\n", argv[0]);
+    if (argc != 5) {
+        fprintf(stderr, "Usage: %s [param_path] [bin_path] [image_path] [save_path]\n", argv[0]);
         return -1;
     }
 
     const char* param_path = argv[1];
     const char* bin_path = argv[2];
     const char* image_path = argv[3];
+    const char* save_path = argv[4];
 
     RunArgs run_args = {640, 0.2, 0.45};
 
@@ -239,7 +290,7 @@ int main(int argc, char ** argv) {
     }
 
     std::vector<Object> objects;
-    if (detector.detect(image_path, objects) != 0) {
+    if (detector.detect(image_path, save_path) != 0) {
         fprintf(stderr, "detect image fail!");
         return -1;
     }

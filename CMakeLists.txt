@@ -37,5 +37,5 @@ message(STATUS "Find src file: ${DIR_SRCS}")
 
 add_executable(${CMAKE_PROJECT_NAME} ${DIR_SRCS})
 
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(${CMAKE_PROJECT_NAME} ${EXTRA_LIBS})

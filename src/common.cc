@@ -1,5 +1,14 @@
 #include "common.h"
 
+#include <unistd.h>
+#include <glob.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <regex>
+#include <string>
+#include <unordered_map>
+
+
 const std::vector<std::vector<int>> color_list = {
     {220, 20, 60}, {119, 11, 32}, {0, 0, 142}, {0, 0, 230},
     {106, 0, 228}, {0, 60, 100}, {0, 80, 100}, {0, 0, 70},
@@ -23,3 +32,93 @@ const std::vector<std::vector<int>> color_list = {
     {95, 54, 80}, {128, 76, 255}, {201, 57, 1}, {246, 0, 122},
     {191, 162, 208}
 };
+
+int parse_path(const std::string & path, std::unordered_map<std::string, std::string> & result_map) noexcept {
+    static std::vector<std::string> fields{"path", "dirname", "basename", "stem", "suffix"};
+    static std::regex pattern{"^(.*)/((.*)\\.(.*))"};
+    struct stat st;
+    if (stat(path.c_str(), &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            result_map["path"] = path;
+            result_map["dirname"] = path;
+            return 0;
+        } else {
+            std::smatch results;
+            if (std::regex_match(path, results, pattern)) {
+                for (int i = 0; i < (int)fields.size(); i++) {
+                    auto & key = fields[i];
+                    result_map[key] = results[i];
+                }
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    } else {
+        return -1;
+    }
+}
+
+
+int check_dir(const std::string & check_path, const bool is_mkdir) noexcept {
+    int ret;
+    struct stat st;
+    if (stat(check_path.c_str(), &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            return 0;
+        } else {
+            return -1;
+        }
+    } else {
+        if (is_mkdir) {
+            ret = mkdir(check_path.c_str(), 00700);
+            return ret;
+        } else {
+            return -1;
+        }
+    }
+}
+
+
+int check_file(const std::string & check_path, 
+               std::vector<std::string> * file_set, 
+               const std::vector<std::string> suffix) noexcept {
+    struct stat st;
+    char buf[BUFSIZ] = {0};
+    if (stat(check_path.c_str(), &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            size_t total_file = 0;
+            if (suffix.size()) {
+                for (auto sfx: suffix) {
+                    std::snprintf(buf, sizeof(buf), "%s%s%s", check_path.c_str(), "/*.", sfx.c_str());
+                    glob_t gl;
+                    int ret = glob(buf, GLOB_ERR, nullptr, &gl);
+                    // if (ret != 0 || ret != GLOB_NOMATCH) {
+                    //     return -2;
+                    // }
+                    for (size_t i = 0; i < gl.gl_pathc; i++) {
+                        total_file ++;
+                        const char * subpath = gl.gl_pathv[i];
+                        if (file_set != nullptr) {
+                            file_set->emplace_back(subpath);
+                        }
+                    }
+                    globfree(&gl);
+                }
+            } else {
+                if (file_set != nullptr) {
+                    file_set->emplace_back(check_path);
+                }
+            }
+            return 1 + total_file;
+        } else if (S_ISREG(st.st_mode)) {
+            if (file_set != nullptr) {
+                file_set->emplace_back(check_path);
+            }
+            return 0;
+        }
+    } else {
+        return -1;
+    }
+    return 0;
+}
