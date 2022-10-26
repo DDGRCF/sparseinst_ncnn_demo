@@ -55,6 +55,7 @@ make -j$(nproc)
 
 ## Download Model
 
+This repo only provide [sparseinst_r50_giam_soft.yaml](https://github.com/hustvl/SparseInst/blob/main/configs/sparse_inst_r50_giam_soft.yaml) ncnn converted model.
 ```shell
 latest_version=v1.0.0
 wget https://github.com/DDGRCF/sparseinst_ncnn_demo/releases/download/${latest_version}/sparseinst-sim-opt.param
@@ -70,6 +71,18 @@ save_path=/path/to/your/save_image
 ./sparseinst_ncnn_demo ${param_path} ${bin_path} ${image_path} ${save_path}
 # NOTE: image_path can be dir or file.
 ```
+
+# About Performance
+I compare the ncnn model with other frame (onnxruntime), results as following:
+
+| **Backend** | **inference time** | **remark** |
+|:-----------:|:------------------:|:------------------:|
+| ncnn        | 0.5501 ms          | not starting vulkan         |
+| onnxruntime | 0.9103 ms          | not using gpu version          |
+
+**Device**: `CPU: 20 12th Gen Intel(R) Core(TM) i7-12700H`. 
+
+**Extra**: Test run 100 times and did't include data preprocess and data postprocess. For convenience, both of them used python api.
 
 # License
 This repo is under [MIT LICENSE](./LICENSE)
