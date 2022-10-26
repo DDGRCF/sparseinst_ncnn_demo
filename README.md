@@ -42,7 +42,7 @@ make -j$(proc)
 make install
 ```
 
-## Clone Repo
+## Compile Repo
 
 ```shell
 git clone https://github.com/DDGRCF/sparseinst_ncnn_demo.git
@@ -75,14 +75,14 @@ save_path=/path/to/your/save_image
 # About Performance
 I compare the ncnn model with other frame (onnxruntime), results as following:
 
-| **Backend** | **inference time** | **remark** |
+| **backend** | **inference time** | **remark** |
 |:-----------:|:------------------:|:------------------:|
-| ncnn        | 0.5501 ms          | not starting vulkan         |
-| onnxruntime | 0.9103 ms          | not using gpu version          |
+| ncnn        | 0.5501 s          | not starting vulkan         |
+| onnxruntime | 0.9103 s          | not using gpu version          |
 
 **Device**: `CPU: 20 12th Gen Intel(R) Core(TM) i7-12700H`. 
 
-**Extra**: Test run 100 times and did't include data preprocess and data postprocess. For convenience, both of them used python api.
+**Extra**: Test run 100 times(avg) and did't include data preprocess and data postprocess. For convenience, both of them used python api.
 
 # License
 This repo is under [MIT LICENSE](./LICENSE)
