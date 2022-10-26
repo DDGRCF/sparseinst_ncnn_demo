@@ -111,13 +111,10 @@ std::vector<std::string> SparseInstDetector::support_image_suffix = {
 int SparseInstDetector::detect(cv::Mat & image, std::vector<Object> & objects) noexcept {
     int ret;
     ret = inference(image, objects);
-    if (ret != 0) {
-        return -1;
-    }
+    if (ret != 0) return -1;
 
     ret = visualize(image, objects);
-    if (ret != 0) { return -1;
-    }
+    if (ret != 0) return -1;
     return 0;
 }
 
@@ -143,9 +140,7 @@ int SparseInstDetector::detect(const std::string & image_path, const std::string
         }
     } else { // file
         cv::Mat image = cv::imread(image_path);
-        if (image.empty()) {
-            return -1;
-        }
+        if (image.empty()) return -1;
         std::vector<Object> objects;
         ret = inference(image, objects);
         if (ret != 0) return -1;
@@ -289,7 +284,6 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    std::vector<Object> objects;
     if (detector.detect(image_path, save_path) != 0) {
         fprintf(stderr, "detect image fail!");
         return -1;
