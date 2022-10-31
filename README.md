@@ -73,11 +73,12 @@ save_path=/path/to/your/save_image
 ```
 
 # About Performance
-I compare the ncnn model with other frame (onnxruntime), results as following:
+I compare the ncnn model with other frame (onnxruntime, mnn), results as following:
 
 | **backend** | **inference time** | **remark** |
 |:-----------:|:------------------:|:------------------:|
 | ncnn        | 0.5501 s          | not starting vulkan         |
+| mnn        | 0.5492 s          | none        |
 | onnxruntime | 0.9103 s          | not using gpu version          |
 
 **Device**: `CPU: 20 12th Gen Intel(R) Core(TM) i7-12700H`. 
