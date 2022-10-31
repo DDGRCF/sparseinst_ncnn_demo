@@ -1,6 +1,10 @@
 #include <layer.h>
 #include <net.h>
 
+#ifdef NCNN_PROFILING
+    #include "benchmark.h"
+#endif
+
 #include <stdio.h>
 
 #include <vector>
@@ -11,6 +15,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "common.h"
+
 
 struct Object {
     Object() = default;
@@ -127,18 +132,31 @@ int SparseInstDetector::detect(const std::string & image_path, const std::string
         if (ret != 0) return -1;
         ret = check_file(image_path, &image_path_set, support_image_suffix);
         if (ret <= 0) return -1;
+#ifdef NCNN_PROFILING 
+        fprintf(stderr, "find image: %d\n", ret - 1);
+#endif
         for (auto & image_path : image_path_set) {
             std::unordered_map<std::string, std::string> path_parse_result; 
             parse_path(image_path, path_parse_result);
             std::string image_save_path = save_path + "/" + path_parse_result["basename"];
+#ifdef NCNN_PROFILING 
+            auto start_time = ncnn::get_current_time();
+#endif
             cv::Mat image = cv::imread(image_path);
             std::vector<Object> objects;
             ret = inference(image, objects);
             if (ret != 0) return -1;
             ret = visualize(image, objects, image_save_path);
             if (ret != 0) return -1;
+#ifdef NCNN_PROFILING
+            auto end_time = ncnn::get_current_time();
+            fprintf(stderr, "finish detecting image: %s cost: %.02lf ms\n", image_path.c_str(), end_time - start_time);
+#endif
         }
     } else { // file
+#ifdef NCNN_PROFILING
+        auto start_time = ncnn::get_current_time();
+#endif
         cv::Mat image = cv::imread(image_path);
         if (image.empty()) return -1;
         std::vector<Object> objects;
@@ -146,6 +164,10 @@ int SparseInstDetector::detect(const std::string & image_path, const std::string
         if (ret != 0) return -1;
         ret = visualize(image, objects, save_path);
         if (ret != 0) return -1;
+#ifdef NCNN_PROFILING
+        auto end_time = ncnn::get_current_time();
+        fprintf(stderr, "finish detecting image: %s cost: %.02lf ms\n", image_path.c_str(), end_time - start_time);
+#endif
     }
 
     return 0;

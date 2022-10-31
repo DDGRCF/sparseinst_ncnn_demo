@@ -4,6 +4,13 @@ set(CMAKE_BUILD_TYPE Debug)
 
 project(sparseinst_ncnn_demo)
 
+# Options
+option(NCNN_PROFILING "Test ncnn model run time" OFF)
+if (NCNN_PROFILING) 
+    message(STATUS "Start model run time test")
+    add_definitions(-DNCNN_PROFILING)
+endif()
+
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
