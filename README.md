@@ -48,18 +48,20 @@ make install
 git clone https://github.com/DDGRCF/sparseinst_ncnn_demo.git
 cd sparseinst_ncnn_demo
 mkdir -p build && cd build
-cmake .. -DNCNN_DIR=/path/to/ncnn/build/install/lib/cmake/ncnn
+cmake .. -DNCNN_DIR=/path/to/ncnn/build/install/lib/cmake/ncnn (option)[-DNCNN_PROFILING=ON]
 make -j$(nproc)
+# Open NCNN_PROFILING option will output time cost and detect image information.
 ```
+
 
 
 ## Download Model
 
-This repo only provide [sparseinst_r50_giam_soft.yaml](https://github.com/hustvl/SparseInst/blob/main/configs/sparse_inst_r50_giam_soft.yaml) ncnn converted model.
+This repo provide [sparseinst_r50_giam_soft.yaml](https://github.com/hustvl/SparseInst/blob/main/configs/sparse_inst_r50_giam_soft.yaml) and [sparseinst_inst_cspdarknet53_giam.yaml](https://github.com/hustvl/SparseInst/blob/main/configs/sparse_inst_cspdarknet53_giam.yaml) ncnn converted model. For Resnet50, you can download by following commands:
 ```shell
 latest_version=v1.0.0
-wget https://github.com/DDGRCF/sparseinst_ncnn_demo/releases/download/${latest_version}/sparseinst-sim-opt.param
-wget https://github.com/DDGRCF/sparseinst_ncnn_demo/releases/download/${latest_version}/sparseinst-sim-opt.bin
+wget https://github.com/DDGRCF/sparseinst_ncnn_demo/releases/download/${latest_version}/sparseinst-resnet-sim-opt.param
+wget https://github.com/DDGRCF/sparseinst_ncnn_demo/releases/download/${latest_version}/sparseinst-resnet-sim-opt.bin
 ```
 
 ## Run Repo
